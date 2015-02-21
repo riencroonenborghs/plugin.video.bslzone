@@ -53,30 +53,20 @@ class bslzone:
     self.gui.end_of_folders()
 
   def play(self, program):
-    data    = resources.fetcher.fetcher().fetch("%s/%s" % (resources.config.INDEX_URL, program))
-    soup    = BeautifulSoup.BeautifulSoup(data)
-    iframe  = soup.find("iframe")
-    match   = re.search('videos.bslzone.co.uk/(\d+)/player', iframe['src'])
-    if match:
-      id = match.group(1)
-      xbmc.log(resources.config.VZAAR_JSON_URL % id)
-      json_response = resources.fetcher.fetcher().http_get(resources.config.VZAAR_JSON_URL % id)
-      player_data = json.loads(json_response)
-      ts = player_data['vz']['system']['ts'].encode('ASCII', 'ignore')
-      hs = player_data['vz']['system']['hs'].encode('ASCII', 'ignore')
-      smil = resources.fetcher.fetcher().http_get(resources.config.VZAAR_SMIL_URL % (id, ts, hs))
-      soup = BeautifulSoup.BeautifulSoup(smil)
-      rtmp = soup.smil.head.meta['base'].encode('ASCII', 'ignore')
-      play_path = soup.smil.body.switch.video['src'].encode('ASCII', 'ignore')
-      match = re.search('mp4\:(.*)', play_path)
-      if match:
-        play_path = match.group(1)
-        player = 'http://view.vzaar.com/1945412/flashplayer'
-        url = "rtmp://%s playpath=%s swfUrl=%s" % (rtmp, play_path, player)
-        liz=xbmcgui.ListItem(program, iconImage="DefaultVideo.png", thumbnailImage='')
-        liz.setInfo(type="Video", infoLabels={ "Title": program.replace('Live','')} )
-        liz.setProperty("IsPlayable","true")
-        pl = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-        pl.clear()
-        pl.add(url, liz)
-        xbmc.Player(xbmc.PLAYER_CORE_MPLAYER).play(pl)
+    data          = resources.fetcher.fetcher().fetch("%s/%s" % (resources.config.INDEX_URL, program))
+    soup          = BeautifulSoup.BeautifulSoup(data)
+    iframe        = soup.find("iframe")
+    iframe_match  = re.search('videos.bslzone.co.uk/(\d+)/player', iframe['src'])
+    if iframe_match:
+      video_id  = iframe_match.group(1)
+      url       = self.__video_url__(video_id)
+      listitem  = xbmcgui.ListItem(path = url, label = program)
+      xbmc.executebuiltin("XBMC.Notification(Please Wait!,Preparing Your Video,3000)")
+      xbmc.sleep(1000)
+      xbmc.Player().play(url, listitem, False, -1)
+      
+  def __video_url__(self, video_id):
+    url = resources.config.VZAAR_VIDEO_URL % video_id
+    url = url + "|User-agent=" + resources.config.HTTP_USER_AGENT
+    referer = resources.config.HTTP_PLAYER_REFERER % video_id
+    return url + "&Referer=" + referer
