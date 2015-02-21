@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.bslzone" version="0.0.40" name="BSL Zone" provider-name="lipwiggler">
+<addon id="plugin.video.bslzone" version="0.0.59" name="BSL Zone" provider-name="lipwiggler">
   <requires></requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
